@@ -1,0 +1,10 @@
+.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector{background: #fff;cursor: pointer;}
+.ant-select-multiple.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector{background: #fff;cursor: pointer;}
+.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector input{cursor: pointer;}
+.ant-select:hover .ant-select-selector{border:1px solid #e65c57;}
+.ant-radio-disabled .ant-radio-input{cursor: pointer;}
+.ant-radio-disabled .ant-radio-inner{background: #fff;cursor: pointer;}
+.ant-radio-disabled.ant-radio-checked .ant-radio-inner{border-color: #D92F2F !important;}
+.ant-radio-disabled .ant-radio-inner::after{background-color: #D92F2F;}
+.ant-radio-disabled + span{cursor: pointer;color: rgba(0,0,0,.85);}
+.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector{color:rgba(0,0,0,.85)}

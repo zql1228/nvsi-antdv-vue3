@@ -1,0 +1,308 @@
+@import '~ant-design-vue/dist/antd.less'; // 引入官方提供的 less 样式入口文件
+
+/*                       主题                        */
+
+@primary-color: #d92f2f; // 全局主色
+@link-color: #d92f2f; // 链接色
+@success-color: #52c41a; // 成功色
+@warning-color: #faad14; // 警告色
+@error-color: #f5222d; // 错误色
+@font-size-base: 14px; // 主字号
+@heading-color: rgba(0, 0, 0, 0.85); // 标题色
+@text-color: rgba(0, 0, 0, 0.65); // 主文本色
+@text-color-secondary: rgba(0, 0, 0, 0.45); // 次文本色
+@disabled-color: rgba(0, 0, 0, 0.25); // 失效色
+@border-radius-base: 4px; // 组件/浮层圆角
+@border-color-base: #d9d9d9; // 边框色
+@box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15); // 浮层阴影
+
+// 左侧菜单宽度  和NvsiLayout width保持一致
+@layout-sider-width: 216px;
+@header-height: 72px;
+
+// 查询框框和按钮的高度
+@search-height: 40px;
+@search-margin-bottom: 8px;
+
+// 主题样式 - logo和系统标题
+.nv-layout {
+  overflow: hidden;
+  height: 100vh;
+  .layout_header_logo {
+    height: @header-height;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 36px 0 24px;
+    line-height: @header-height;
+    float: left;
+  }
+  .layout_header_logo img {
+    width: 44px;
+    height: 44px;
+    position: relative;
+    top: -2px;
+  }
+  .layout_header_logo span {
+    font-size: 22px;
+    font-weight: bolder;
+    margin-left: 10px;
+    color: #fff;
+  }
+  .multitab-wrapper {
+    background: #f9f9f9;
+    box-shadow: 0px 2px 12px rgba(189, 159, 159, 0.35);
+    // z-index: 999;
+  }
+  .ant-menu-sub.ant-menu-inline {
+    background-color: rgba(217, 47, 47, 0);
+  }
+}
+
+.nv-header {
+  height: @header-height;
+  background: @primary-color;
+  padding: 0;
+  .nv-top-menu {
+    line-height: @header-height;
+    text-align: center;
+    height: @header-height;
+    width: 120px;
+    font-family: Microsoft YaHei;
+    font-weight: 400;
+    color: #ffffff;
+    font-size: 14px;
+  }
+  .top-menu-line {
+    content: '1';
+    width: 1px;
+    height: 52px;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0) 0%,
+      @text-color 49%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+  .nv-top-menu:hover {
+    background: #c12a2a;
+  }
+  .ant-layout-header,
+  .ant-menu {
+    padding: 0;
+    background: @primary-color;
+  }
+  .ant-menu-item {
+    padding: 0px;
+  }
+}
+
+// 左侧菜单
+.nv-sider {
+  z-index: 10;
+  font-family: Microsoft YaHei;
+  box-shadow: 2px 0 6px rgba(189, 159, 159, 0.35);
+  .nv-sider-header {
+    height: auto;
+    width: 100%;
+    position: relative;
+    padding-top: 30px;
+    padding-bottom: 25px;
+    box-shadow: 0px 2px 12px rgba(189, 159, 159, 0.18);
+    z-index: 999;
+    .center-setting {
+      font-size: 14px;
+      text-align: right;
+      padding: 12px;
+      i {
+        padding-right: 8px;
+      }
+    }
+    .heade-img {
+      width: 80px;
+      height: 80px;
+      background: #fff;
+      border-radius: 40px;
+      margin: 0 auto;
+    }
+    .header-name {
+      width: calc(@layout-sider-width - 20px);
+      height: 35px;
+      font-weight: bold;
+      line-height: 35px;
+      margin: 0 auto;
+      margin-top: 14px;
+      text-align: center;
+      font-size: 18px;
+      color: #1e1e1e;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+  .ant-layout-sider-trigger {
+    background: #fff;
+    color: @primary-color;
+    border-top: 1px solid #eaeaea;
+  }
+}
+// 折叠后右边子菜单的背景
+.ant-menu-submenu-placement-rightTop .ant-menu,
+.ant-menu-submenu-popup .ant-menu {
+  background: #fff;
+}
+
+// 去掉左菜单右边的边框
+.ant-menu-inline,
+.ant-menu-vertical,
+.ant-menu-vertical-left {
+  border-right: 0px;
+}
+.ant-menu-inline .ant-menu-item::after {
+  border-right: 3px solid #d92f2f;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #dddddd;
+  border-radius: 3px;
+}
+
+// 表单的样式
+.nv-form {
+  .nv-tips {
+    font-size: 12px;
+    color: gray;
+    line-height: 40px;
+  }
+  .ant-btn,
+  .ant-input {
+    height: @search-height;
+  }
+  .ant-input-affix-wrapper .ant-input:not(:last-child) {
+    padding-right: 42px;
+  }
+}
+
+.table-fixed-recombination {
+  height: calc(100vh - 412px);
+}
+// 表单中每行列数不一致时会因为padding无法对齐
+.form-clear-padding .ant-col {
+  padding: 0 !important;
+}
+// form help字体调整
+.ant-form-explain,
+.ant-form-extra {
+  font-size: 12px;
+}
+
+// **************************** 业务样式
+.nv-footer-bar.ant-pro-footer-toolbar {
+  width: 100% !important;
+  height: 48px;
+  line-height: 48px;
+}
+
+.nv-card-title {
+  color: @primary-color;
+  font-size: 20px;
+  font-weight: bold;
+}
+.nv-card-p-0 {
+  .ant-card-head-title,
+  .ant-card-body {
+    padding: 10px, 0px;
+  }
+}
+// .nvsi-header-wrapper {
+//   .ant-card-body {
+//     // padding: 24px 24px 0px;
+//   }
+// }
+
+// 数据列表 搜索条件
+.table-page-search-wrapper {
+  .form-clear-margin .ant-form-item {
+    margin-bottom: 0;
+  }
+  // .ant-col {
+  //   padding: 0 !important;
+  // }
+  .ant-form-item {
+    margin-bottom: @search-margin-bottom;
+    margin-right: 0;
+    .ant-form-item-label {
+      line-height: @search-height;
+    }
+    // .ant-form-item-control,
+    .ant-select .ant-select-selection--single,
+    .ant-select .ant-select-selection__rendered,
+    .ant-select .ant-select-selector,
+    .ant-select .ant-select-selector .ant-select-selection-item {
+      height: @search-height;
+      line-height: @search-height;
+    }
+    .ant-input,
+    .ant-btn,
+    .ant-select .ant-select-selection--single {
+      height: @search-height;
+    }
+  }
+}
+// table查询合计
+
+.nvis-table {
+  .table-total {
+    padding: 0 0 12px;
+    .total-bar {
+      // -webkit-box-align: center;
+      // -ms-flex-align: center;
+      // align-items: center;
+      line-height: 40px;
+      height: 40px;
+      background: linear-gradient(264deg, #ffffff 0%, #fff9f8 100%);
+      .total-title {
+        display: inline-flex;
+        padding-left: 10px;
+        font-size: 16px;
+        color: rgba(0, 0, 0, 0.85);
+        font-weight: 700;
+        span {
+          color: #c12a2a;
+        }
+      }
+    }
+    .total-actions {
+      text-align: right;
+    }
+  }
+}
+.ant-pro-basicLayout-content .ant-pro-page-header-wrap {
+  margin: 0 -24px 0;
+}
+
+//                     ↓ 百度地图样式
+
+.bm-search {
+  text-align: center;
+  padding-bottom: 24px;
+  .icon-search {
+    color: @text-color-secondary;
+  }
+}
+.bm-view {
+  width: 100%;
+  height: calc(100vh - 400px);
+}
+//                     ↑ 百度地图样式
+
+//                     ↓ 工作台样式
+.workbench {
+  .top {
+    height: 40px;
+  }
+}
+//                     ↑ 工作台样式

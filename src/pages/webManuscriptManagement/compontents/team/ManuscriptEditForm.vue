@@ -1,0 +1,413 @@
+<template>
+  <div>
+    <a-drawer
+      v-model:visible="props.visible"
+      title="稿件"
+      :maskClosable="false"
+      placement="right"
+      @close="onClose(false)"
+      width="800"
+      :body-style="{ paddingBottom: '80px' }"
+    >
+      <a-form :label-col="labelCol" :wrapper-col="wrapperCol" ref="formRef" :model="form" layout="horizontal" :rules="rules">
+        <a-row :gutter="24">
+          <a-col :span="24">
+            <a-form-item
+              name="title"
+              label="稿件标题"
+              :wrapper-col="{
+                span: 10,
+              }"
+            >
+              <a-input v-model:value="form.title" type="text" placeholder="请输入稿件标题" />
+            </a-form-item>
+          </a-col>
+
+          <a-col :span="24">
+            <a-form-item name="isvideonews" label="是否视频稿件">
+              <a-radio-group v-model:value="form.isvideonews" :options="optionsList.options1" />
+            </a-form-item>
+          </a-col>
+          <!-- 如果是 则开始填视频链接 -->
+          <a-col :span="24">
+            <a-form-item
+              name="title"
+              label="视频链接"
+              :wrapper-col="{
+                span: 10,
+              }"
+              v-show="form.isvideonews == 1"
+            >
+              <a-input v-model:value="form.videolink" type="text" placeholder="请输入视频链接" />
+            </a-form-item>
+          </a-col>
+
+          <a-col :span="24">
+            <a-form-item name="newscontent" label="稿件内容">
+              <QuillEditor v-model:value="form.newscontent" theme="snow" toolbar="full" ref="QuillEditor" maxlength="15000" />
+            </a-form-item>
+          </a-col>
+
+          <a-col :span="24">
+            <a-form-item name="imgtitle" label="图片封面">
+              <div class="clearfix">
+                <img v-if="imageUrl" :src="imageUrl" @click="deleteImg" />
+                <a-upload :file-list="fileList2" list-type="picture-card" :beforeUpload="beforeUpload" :customRequest="handleFileUpload2">
+                  <div v-if="fileList2.length < 1 && !imageUrl">
+                    <plus-outlined />
+                    <div style="margin-top: 8px">上传稿件封面</div>
+                  </div>
+                </a-upload>
+              </div>
+            </a-form-item>
+          </a-col>
+
+          <a-col :span="24"
+            ><a-form-item name="file" label="附件">
+              <a-row v-for="(item, index) in fileList" :key="index" justify="end" style="border-bottom:1px solid#666;margin-top:5px;">
+                <a-col span="18">
+                  <a-col span="22" class="nowrap"
+                    ><span>{{ item.showname }}</span></a-col
+                  >
+                </a-col>
+                <a-col span="6">
+                  <a-row justify="end">
+                    <a-col span="12" style="text-align:right;"> <a style="border-bottom:1px solid red;" @click="down(index)">下载</a></a-col>
+                    <a-col span="12" style="text-align:right;"
+                      ><a @click="del(index)" :style="{ color: props.type == 'view' ? '#ddd' : 'red' }">删除</a></a-col
+                    >
+                  </a-row>
+                </a-col>
+              </a-row>
+              <a ref="download" download v-show="false" href="#"></a>
+              <a-upload :file-list="fileList" name="file" :showUploadList="false"
+               :beforeUpload="beforeUpload" :customRequest="handleFileUpload"
+               :disabled="props.type == 'view'"
+               >
+                <a-button :style="fileList.length > 0 ? 'margin-top:8px;' : ''" v-show="!(props.type == 'view' && fileList.length > 0)">
+                  <template #icon><PlusOutlined /> </template>
+                  上传</a-button
+                >
+              </a-upload>
+            </a-form-item>
+          </a-col>
+        </a-row>
+      </a-form>
+      <div
+        :style="{
+          position: 'absolute',
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          borderTop: '1px solid #e9e9e9',
+          padding: '10px 16px',
+          background: '#fff',
+          textAlign: 'right',
+          zIndex: 1,
+        }"
+        v-show="props.type != 'view'"
+      >
+        <a-button style="margin-right: 8px" @click="submit(0)" :loading="loading1">保存</a-button>
+      </div>
+    </a-drawer>
+  </div>
+</template>
+<script>
+import { defineComponent, ref, reactive, watch } from 'vue'
+import { uploadHandle, checkFileType } from '@/utils/upload'
+import { LocalGetUserInfo } from '@/utils/localStorage.js'
+import { PlusOutlined } from '@ant-design/icons-vue'
+import { rpcPost } from '@/server/conf/index.js'
+import { message } from 'ant-design-vue/es'
+export default defineComponent({
+  props: {
+    visible: {
+      type: Boolean,
+      default: false,
+    },
+    type: {
+      type: String,
+      default: '', //create创建 modify修改 view查看
+    },
+    item: {
+      type: Object,
+      default: {},
+    },
+  },
+
+  components: {
+    PlusOutlined,
+  },
+  setup(props, text) {
+    const fileList2 = ref([])
+    const download = ref()
+    const imageUrl = ref('') // 封面图片地址
+    const formRef = ref()
+    const userInfo = ref(LocalGetUserInfo())
+    const form = reactive({
+      title: '', //标题
+      englishtitle: '', //英文标题
+      entrytime: '', //录入时间
+      videolink: '', //视频链接
+      imgtitle: '', //图片地址=
+      isvideonews: '', //是否视频稿件
+    })
+
+    const QuillEditor = ref() //富文本对象form.content = QuillEditor.value.getHTML()
+    const fileList = ref([]) //上传文件组件按钮的文件列表
+    const confirmLoading = ref(false) //确定按钮loading
+
+    const loading1 = ref(false)
+    const loading2 = ref(false)
+    const optionsList = reactive({
+      options1: [
+        {
+          label: '是',
+          value: '1',
+        },
+        {
+          label: '否',
+          value: '0',
+        },
+      ],
+    })
+    const handleOk = (e) => {
+      //确定按钮
+      onClose(true)
+    }
+    const onClose = (bool) => {
+      //叉号 关闭弹窗
+      formRef.value.resetFields()
+      fileList.value = []
+      fileList2.value = []
+      QuillEditor.value.setHTML('')
+      imageUrl.value = ''
+      text.emit('child', bool)
+    }
+
+    const beforeUpload = (file) => {
+      //文件格式校验
+      const flag = checkFileType(file)
+      if (!flag) {
+        message.warning('上传文件格式错误，请重新上传')
+        return false
+      }
+      return true
+    }
+
+    // 图片上传
+    const handleFileUpload2 = async (options) => {
+      const res = await uploadHandle(options)
+      if (res) {
+        rpcPost('downloadFortisLogic', { bean: res }).then((result) => {
+          imageUrl.value = result.data
+          message.success('上传成功')
+          form.imgtitle = res
+        })
+        fileList2.value.push = res
+      } else {
+        message.warning('上传失败')
+        fileList2.value = []
+      }
+    }
+
+    // 文件上传
+    const handleFileUpload = async (options) => {
+      const res = await uploadHandle(options)
+      if (res) {
+        message.success('上传成功')
+        fileList.value.push(res)
+      } else {
+        message.warning('上传失败')
+      }
+    }
+
+    const del = (index) => {
+      //文件上传 文件删除
+      if (props.type !== 'view') {
+        fileList.value.splice(index, 1)
+      }
+    }
+
+    //把稿件的所有字段写出来
+    const beanObj = () => {
+      //表单字段集合
+      return {
+        creator: userInfo.value.userflag,
+        areaid: userInfo.value.areaid,
+        title: form.title,
+        newscontent: QuillEditor.value.getHTML(),
+        attachments: fileList.value.length > 0 ? JSON.stringify(fileList.value) : null, //附件
+        imgtitle: form.imgtitle,
+        istabloid: form.istabloid,
+        videolink: form.videolink, //视频链接
+        isvideonews: form.isvideonews, //是否为视频稿件
+      }
+    }
+
+    const submit = (sendstatus) => {
+      formRef.value.validate().then(() => {
+        let bean = {
+          ...beanObj(),
+          // creator: userInfo.value.fullName,
+          areaid: userInfo.value.areaid,
+          ispublish: sendstatus, //未发布0 发布1
+          contributorid: userInfo.value.team.groupid,
+          contributorname: userInfo.value.team.albe0002,
+        }
+        staging(bean) //暂存稿件
+      })
+    }
+
+    const staging = (bean) => {
+      loading1.value = true
+      if (props.type == 'create') {
+        //新建暂存
+        rpcPost('saveManuscriptFront', { bean }).then((res) => {
+          if (res && res.code === 0) {
+            message.success('保存成功')
+            onClose(1)
+          } else {
+            message.warning(res.message)
+          }
+          loading1.value = false
+        })
+      } else if (props.type == 'modify') {
+        //修改暂存
+        bean.id = props.item.id
+        rpcPost('saveManuscriptFront', { bean }).then((res) => {
+          if (res && res.code === 0) {
+            message.success('修改成功')
+            onClose(1)
+          } else {
+            message.warning(res.message)
+          }
+          loading1.value = false
+        })
+      }
+    }
+
+    const down = (index) => {
+      //下载 按钮
+      rpcPost('downloadFortisLogic', { bean: fileList.value[0] }).then((res) => {
+        if (res && res.code === 0 && res.data) {
+          download.value.href = res.data
+          download.value.click()
+        } else {
+          message.warning('下载失败')
+        }
+      })
+    }
+
+    const onEditorFocus = (event) => {
+      // 富文本获得焦点时的事件
+      if (props.type == 'view') {
+        QuillEditor.value.enable(false) //查看状态禁用富文本 在获取焦点的时候禁用
+      }
+    }
+    const checkContent = async (rule, value) => {
+      //公告内容验证
+      form.newscontent = QuillEditor.value.getHTML()
+      if (!form.newscontent || form.newscontent == '<p><br></p>') {
+        return Promise.reject('请填写稿件内容')
+      } else {
+        return Promise.resolve()
+      }
+    }
+
+    //监听修改页面，赋值
+    watch(
+      () => props.visible,
+      (visible) => {
+        if (visible && props.type != 'create') {
+          let bean = {
+            id: props.item.id,
+          }
+          rpcPost('getManuscriptDetails', { bean }).then((res) => {
+            console.log(res.data)
+            if (res && res.code === 0) {
+              Object.keys(form).forEach((name) => {
+                if (props.item[name]) {
+                  form[name] = res.data[name]
+                }
+              })
+              // form.title = res.data.title
+              form.newscontent = res.data.newscontent
+              QuillEditor.value.setHTML(res.data.newscontent) //富文本编辑器
+              if (res.data.attachments) {
+                fileList.value = JSON.parse(res.data.attachments)
+              }
+              if (res.data.imgtitle) {
+                //查询封面地址
+                rpcPost('downloadFortisLogic', { bean: res.data.imgtitle }).then((res) => {
+                  if (res && res.code === 0 && res.data) {
+                    imageUrl.value = res.data
+                  } else {
+                    message.warning('稿件封面图片获取失败')
+                  }
+                })
+              }
+            } else {
+              message.warning(res.message)
+            }
+          })
+        }
+      }
+    )
+
+    const rules = reactive({
+      title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+      isvideonews: [{ required: true, message: '请选择稿件类型', trigger: 'change' }],
+      newscontent: [{ required: true, validator: checkContent, trigger: 'blur' }],
+    })
+
+    const deleteImg = () => {
+      imageUrl.value = ''
+      fileList2.value = []
+    }
+
+    return {
+      deleteImg,
+
+      fileList2,
+
+      props,
+      download,
+      down,
+      QuillEditor,
+      loading2,
+      loading1,
+      fileList,
+      props,
+      formRef,
+      form,
+      rules,
+      confirmLoading,
+      optionsList,
+      handleOk,
+      onClose,
+      beforeUpload,
+      handleFileUpload,
+      handleFileUpload2,
+      del,
+      staging,
+      submit,
+      onEditorFocus,
+      labelCol: {
+        span: 4,
+      },
+      wrapperCol: {
+        span: 21,
+      },
+      imageUrl,
+    }
+  },
+})
+</script>
+<style scoped>
+.nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>

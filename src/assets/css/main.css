@@ -1,0 +1,22 @@
+.header-bar {
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+.header-bar .header-title {
+  font-size: 18px;
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 700;
+}
+.header-bar .header-actions {
+  text-align: right;
+}
+.ant-page-header-content,
+.remove-padding-top {
+  padding-top: 0px;
+}
+
+/* Table title的padding调整为 12 */
+.ant-table-title {
+  padding: 12px 0;
+}
